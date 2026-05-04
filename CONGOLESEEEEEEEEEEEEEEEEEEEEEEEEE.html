@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathQuest — L'aventure des Nombres</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Exo+2:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a1a;
+  --bg2: #0f0f2a;
+  --panel: #12122a;
+  --panel2: #1a1a3a;
+  --gold: #f5c542;
+  --gold2: #e0a820;
+  --cyan: #00e5ff;
+  --cyan2: #00b8d4;
+  --purple: #8b5cf6;
+  --purple2: #6d28d9;
+  --green: #10b981;
+  --red: #ef4444;
+  --orange: #f97316;
+  --pink: #ec4899;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --border: rgba(255,255,255,0.08);
+  --glow-gold: 0 0 20px rgba(245,197,66,0.4);
+  --glow-cyan: 0 0 20px rgba(0,229,255,0.4);
+  --glow-purple: 0 0 20px rgba(139,92,246,0.4);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Exo 2', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── Stars background ─── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 15%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(2px 2px at 33% 45%, rgba(0,229,255,0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 78% 70%, rgba(139,92,246,0.3) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── SCREENS ─── */
+.screen { display: none; position: relative; z-index: 1; }
+.screen.active { display: block; }
+
+/* ─── HEADER ─── */
+#game-header {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: rgba(10,10,26,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  z-index: 100;
+  display: none;
+}
+#game-header.visible { display: flex; }
+
+.header-logo {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, var(--gold), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.header-stats {
+  display: flex; gap: 20px; align-items: center;
+}
+
+.stat-pill {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.85rem; font-weight: 700;
+}
+.stat-pill .icon { font-size: 1rem; }
+.stat-pill.gold { border-color: rgba(245,197,66,0.3); color: var(--gold); }
+.stat-pill.cyan { border-color: rgba(0,229,255,0.3); color: var(--cyan); }
+
+#btn-progress-header {
+  background: linear-gradient(135deg, var(--purple), var(--purple2));
+  border: none; border-radius: 8px;
+  color: white; font-family: 'Exo 2', sans-serif;
+  font-size: 0.8rem; font-weight: 700;
+  padding: 8px 16px; cursor: pointer;
+  transition: all 0.2s;
+}
+#btn-progress-header:hover { transform: translateY(-1px); box-shadow: var(--glow-purple); }
+
+/* ─── WELCOME SCREEN ─── */
+#screen-welcome {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.welcome-badge {
+  font-size: 4rem; margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.welcome-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  background: linear-gradient(135deg, var(--gold), #ff9500, var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  line-height: 1.1; margin-bottom: 8px;
+}
+.welcome-subtitle {
+  font-size: clamp(1rem, 3vw, 1.4rem);
+  color: var(--text2); margin-bottom: 40px;
+  font-weight: 300; letter-spacing: 2px;
+}
+
+.name-input-wrap {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 50px;
+  width: 100%; max-width: 500px;
+}
+.name-input-wrap input {
+  flex: 1; min-width: 200px;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  color: var(--text); font-family: 'Exo 2', sans-serif;
+  font-size: 1rem; padding: 14px 20px;
+  outline: none; transition: border-color 0.3s;
+}
+.name-input-wrap input:focus { border-color: var(--cyan); }
+.name-input-wrap input::placeholder { color: var(--text2); }
+
+.btn-start {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border: none; border-radius: 12px;
+  color: #0a0a1a; font-family: 'Exo 2', sans-serif;
+  font-size: 1.1rem; font-weight: 900;
+  padding: 14px 32px; cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+  box-shadow: var(--glow-gold);
+}
+.btn-start:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(245,197,66,0.6); }
+
+.chapters-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px; max-width: 900px; width: 100%;
+  margin-top: 10px;
+}
+
+.ch-preview-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 12px;
+  font-size: 0.8rem; font-weight: 600;
+  color: var(--text2);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  transition: all 0.3s;
+}
+.ch-preview-card:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-3px); }
+.ch-preview-card .ch-icon { font-size: 1.8rem; }
+
+/* ─── MAP SCREEN ─── */
+#screen-map {
+  padding-top: 80px;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+.map-header {
+  text-align: center; padding: 30px 20px 20px;
+}
+.map-header h2 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  background: linear-gradient(135deg, var(--gold), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+.map-header p { color: var(--text2); font-size: 0.95rem; }
+
+.level-xp-bar {
+  max-width: 400px; margin: 16px auto;
+  background: var(--panel); border-radius: 20px;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+}
+.xp-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text2); margin-bottom: 6px; }
+.xp-track { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+.xp-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--cyan)); border-radius: 4px; transition: width 0.6s ease; }
+
+.chapters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  max-width: 1100px; margin: 0 auto;
+  padding: 0 20px;
+}
+
+.chapter-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative; overflow: hidden;
+}
+.chapter-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-a, var(--gold)), var(--accent-b, var(--cyan)));
+  opacity: 0; transition: opacity 0.3s;
+}
+.chapter-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.15); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+.chapter-card:hover::before { opacity: 1; }
+
+.chapter-card.locked { opacity: 0.4; cursor: not-allowed; }
+.chapter-card.completed { border-color: rgba(16,185,129,0.3); }
+.chapter-card.completed::before { opacity: 1; background: linear-gradient(90deg, var(--green), #34d399); }
+
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.card-icon { font-size: 2.2rem; }
+.card-badge {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+  padding: 4px 10px; border-radius: 20px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+.card-badge.done { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: var(--green); }
+.card-badge.progress { background: rgba(245,197,66,0.15); border-color: rgba(245,197,66,0.4); color: var(--gold); }
+
+.card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+.card-desc { font-size: 0.8rem; color: var(--text2); line-height: 1.5; }
+.card-stars { margin-top: 14px; font-size: 1rem; }
+
+/* ─── CHAPTER SCREEN ─── */
+#screen-chapter {
+  padding-top: 80px;
+  min-height: 100vh;
+  max-width: 800px; margin: 0 auto;
+  padding: 80px 20px 60px;
+}
+
+.ch-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+.btn-back {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text2);
+  font-family: 'Exo 2', sans-serif; font-size: 0.85rem;
+  padding: 8px 16px; cursor: pointer; transition: all 0.2s;
+}
+.btn-back:hover { border-color: var(--cyan); color: var(--cyan); }
+
+.ch-progress-dots { display: flex; gap: 8px; }
+.dot { width: 10px; height: 10px; border-radius: 50%;
+  background: var(--panel2); border: 2px solid var(--border);
+  transition: all 0.3s;
+}
+.dot.active { background: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,229,255,0.5); }
+.dot.done { background: var(--green); border-color: var(--green); }
+
+/* LESSON PANEL */
+.lesson-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 24px;
+  display: none;
+}
+.lesson-panel.active { display: block; }
+
+.lesson-header {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+}
+.lesson-icon { font-size: 2.5rem; }
+.lesson-title-wrap h2 { font-size: 1.4rem; font-weight: 700; }
+.lesson-title-wrap span { font-size: 0.8rem; color: var(--text2); }
+
+.lesson-body { color: var(--text2); line-height: 1.8; font-size: 0.95rem; }
+.lesson-body strong { color: var(--text); }
+.lesson-body .highlight {
+  background: var(--panel2);
+  border-left: 3px solid var(--cyan);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  margin: 14px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  color: var(--cyan);
+}
+.lesson-body .formula {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  color: var(--gold);
+  background: rgba(245,197,66,0.08);
+  border: 1px solid rgba(245,197,66,0.2);
+  border-radius: 10px;
+  padding: 16px; margin: 14px 0;
+}
+.lesson-body .tip {
+  background: rgba(139,92,246,0.1);
+  border: 1px solid rgba(139,92,246,0.25);
+  border-radius: 10px; padding: 12px 16px; margin: 14px 0;
+  font-size: 0.88rem;
+}
+.lesson-body .tip::before { content: '💡 '; }
+
+.btn-continue {
+  width: 100%; margin-top: 24px;
+  background: linear-gradient(135deg, var(--cyan), var(--cyan2));
+  border: none; border-radius: 10px;
+  color: #0a0a1a; font-family: 'Exo 2', sans-serif;
+  font-size: 1rem; font-weight: 800;
+  padding: 14px; cursor: pointer;
+  letter-spacing: 1px; transition: all 0.3s;
+}
+.btn-continue:hover { transform: scale(1.02); box-shadow: var(--glow-cyan); }
+
+/* EXERCISE PANEL */
+.exercise-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  display: none;
+}
+.exercise-panel.active { display: block; }
+
+.ex-header { margin-bottom: 24px; }
+.ex-type-tag {
+  display: inline-block;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 2px;
+  padding: 4px 12px; border-radius: 20px;
+  background: rgba(245,197,66,0.15);
+  border: 1px solid rgba(245,197,66,0.3);
+  color: var(--gold); margin-bottom: 12px;
+}
+.ex-question { font-size: 1.1rem; font-weight: 600; line-height: 1.5; }
+.ex-question .math { font-family: 'JetBrains Mono', monospace; color: var(--cyan); }
+
+/* QCM */
+.qcm-options { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.qcm-btn {
+  background: var(--panel2);
+  border: 2px solid var(--border);
+  border-radius: 10px; color: var(--text);
+  font-family: 'Exo 2', sans-serif; font-size: 0.95rem;
+  padding: 14px 20px; cursor: pointer; text-align: left;
+  transition: all 0.2s; display: flex; align-items: center; gap: 12px;
+}
+.qcm-btn:hover:not(:disabled) { border-color: var(--cyan); background: rgba(0,229,255,0.05); }
+.qcm-btn.correct { border-color: var(--green); background: rgba(16,185,129,0.1); color: var(--green); }
+.qcm-btn.wrong { border-color: var(--red); background: rgba(239,68,68,0.1); color: var(--red); }
+.qcm-btn:disabled { cursor: not-allowed; }
+.qcm-letter {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+}
+
+/* True/False */
+.tf-options { display: flex; gap: 16px; margin-top: 20px; }
+.tf-btn {
+  flex: 1;
+  background: var(--panel2); border: 2px solid var(--border);
+  border-radius: 12px; color: var(--text);
+  font-family: 'Exo 2', sans-serif; font-size: 1.1rem; font-weight: 700;
+  padding: 20px; cursor: pointer; text-align: center;
+  transition: all 0.2s;
+}
+.tf-btn:hover:not(:disabled) { border-color: var(--gold); background: rgba(245,197,66,0.05); }
+.tf-btn.correct { border-color: var(--green); background: rgba(16,185,129,0.1); color: var(--green); }
+.tf-btn.wrong { border-color: var(--red); background: rgba(239,68,68,0.1); color: var(--red); }
+
+/* Calcul */
+.calc-input-wrap { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+.calc-input {
+  flex: 1; min-width: 150px;
+  background: var(--panel2); border: 2px solid var(--border);
+  border-radius: 10px; color: var(--text);
+  font-family: 'JetBrains Mono', monospace; font-size: 1.1rem;
+  padding: 14px 18px; outline: none; transition: border-color 0.3s;
+}
+.calc-input:focus { border-color: var(--cyan); }
+.calc-submit {
+  background: linear-gradient(135deg, var(--purple), var(--purple2));
+  border: none; border-radius: 10px;
+  color: white; font-family: 'Exo 2', sans-serif;
+  font-size: 0.95rem; font-weight: 700;
+  padding: 14px 24px; cursor: pointer; transition: all 0.2s;
+}
+.calc-submit:hover { transform: scale(1.02); box-shadow: var(--glow-purple); }
+
+/* Feedback */
+.feedback-box {
+  margin-top: 20px; padding: 16px 20px;
+  border-radius: 10px; display: none;
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.feedback-box.correct { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); }
+.feedback-box.wrong { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); }
+.feedback-box .fb-title { font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+.feedback-box.correct .fb-title { color: var(--green); }
+.feedback-box.wrong .fb-title { color: var(--red); }
+.feedback-box .fb-text { color: var(--text2); font-size: 0.88rem; line-height: 1.6; }
+
+.btn-next-ex {
+  width: 100%; margin-top: 16px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border: none; border-radius: 10px;
+  color: #0a0a1a; font-family: 'Exo 2', sans-serif;
+  font-size: 1rem; font-weight: 800;
+  padding: 14px; cursor: pointer; transition: all 0.3s;
+  display: none;
+}
+.btn-next-ex:hover { transform: scale(1.02); box-shadow: var(--glow-gold); }
+
+/* CHAPTER COMPLETE */
+.chapter-complete {
+  text-align: center; padding: 40px 20px;
+  display: none;
+}
+.chapter-complete.active { display: block; }
+.complete-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 2rem; color: var(--gold);
+  margin: 20px 0 10px;
+}
+.stars-earned { font-size: 2.5rem; letter-spacing: 4px; margin: 16px 0; }
+.points-earned { font-size: 1.2rem; color: var(--cyan); font-weight: 700; margin-bottom: 24px; }
+.badge-earned {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, rgba(245,197,66,0.15), rgba(139,92,246,0.15));
+  border: 1px solid rgba(245,197,66,0.3);
+  border-radius: 40px; padding: 10px 24px;
+  font-weight: 700; font-size: 0.95rem; margin-bottom: 24px;
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,197,66,0.3); } 50% { box-shadow: 0 0 20px 8px rgba(245,197,66,0.15); } }
+
+.btn-back-map {
+  background: linear-gradient(135deg, var(--purple), var(--purple2));
+  border: none; border-radius: 12px;
+  color: white; font-family: 'Exo 2', sans-serif;
+  font-size: 1rem; font-weight: 700;
+  padding: 14px 32px; cursor: pointer; transition: all 0.3s;
+}
+.btn-back-map:hover { transform: scale(1.03); box-shadow: var(--glow-purple); }
+
+/* ─── PROGRESS SCREEN ─── */
+#screen-progress {
+  padding: 80px 20px 60px;
+  max-width: 900px; margin: 0 auto;
+}
+
+.progress-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 2rem; text-align: center;
+  background: linear-gradient(135deg, var(--gold), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 30px;
+}
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px; margin-bottom: 30px;
+}
+.stat-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px; text-align: center;
+}
+.stat-card .val { font-size: 2.2rem; font-weight: 900; color: var(--gold); font-family: 'JetBrains Mono', monospace; }
+.stat-card .lbl { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
+
+.badges-section { margin-bottom: 30px; }
+.badges-section h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--text2); }
+.badges-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.badge-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 30px; padding: 8px 16px; font-size: 0.85rem;
+  transition: all 0.3s;
+}
+.badge-item.earned { border-color: rgba(245,197,66,0.4); color: var(--gold); background: rgba(245,197,66,0.05); }
+.badge-item.locked { opacity: 0.35; }
+
+.chapters-progress { margin-bottom: 30px; }
+.chapters-progress h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--text2); }
+.progress-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.progress-row .pr-icon { font-size: 1.4rem; width: 32px; text-align: center; }
+.progress-row .pr-name { flex: 1; font-size: 0.9rem; font-weight: 600; }
+.progress-row .pr-stars { font-size: 0.9rem; letter-spacing: 2px; }
+.progress-row .pr-bar { width: 100px; height: 6px; background: var(--panel2); border-radius: 3px; overflow: hidden; }
+.progress-row .pr-bar-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--cyan)); border-radius: 3px; }
+
+.btn-quiz-final {
+  width: 100%; margin-top: 20px;
+  background: linear-gradient(135deg, var(--orange), var(--pink));
+  border: none; border-radius: 14px;
+  color: white; font-family: 'Exo 2', sans-serif;
+  font-size: 1.1rem; font-weight: 800;
+  padding: 18px; cursor: pointer; transition: all 0.3s;
+  letter-spacing: 1px;
+}
+.btn-quiz-final:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(249,115,22,0.4); }
+
+/* ─── FINAL QUIZ SCREEN ─── */
+#screen-quiz {
+  padding: 80px 20px 60px;
+  max-width: 700px; margin: 0 auto;
+}
+.quiz-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.8rem; text-align: center;
+  background: linear-gradient(135deg, var(--orange), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+.quiz-sub { text-align: center; color: var(--text2); margin-bottom: 30px; font-size: 0.9rem; }
+.quiz-counter {
+  text-align: center; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem; color: var(--text2); margin-bottom: 20px;
+}
+.quiz-result-wrap { text-align: center; padding: 40px 20px; }
+.quiz-score { font-size: 4rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; color: var(--gold); margin: 16px 0; }
+.quiz-score span { font-size: 1.5rem; color: var(--text2); }
+
+/* ─── PARTICLES ─── */
+.particle {
+  position: fixed; pointer-events: none; z-index: 999;
+  font-size: 1.5rem; font-weight: 700;
+  animation: particleUp 1.2s ease forwards;
+}
+@keyframes particleUp {
+  0% { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx,0), -80px) scale(0.5); }
+}
+
+/* ─── DRAG & DROP ─── */
+.dragdrop-wrap { margin-top: 20px; }
+.dd-items { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.dd-item {
+  background: var(--purple); border-radius: 8px;
+  color: white; font-weight: 700; font-size: 0.9rem;
+  padding: 8px 16px; cursor: grab; user-select: none;
+  transition: all 0.2s;
+}
+.dd-item:active { cursor: grabbing; opacity: 0.7; }
+.dd-item.placed { opacity: 0.3; pointer-events: none; }
+
+.dd-zones { display: flex; flex-direction: column; gap: 10px; }
+.dd-zone {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--panel2); border: 2px dashed var(--border);
+  border-radius: 10px; padding: 12px 16px;
+  min-height: 52px; transition: border-color 0.2s;
+}
+.dd-zone.over { border-color: var(--cyan); }
+.dd-zone.correct { border-color: var(--green); background: rgba(16,185,129,0.08); }
+.dd-zone.wrong { border-color: var(--red); background: rgba(239,68,68,0.08); }
+.dd-zone-label { font-size: 0.85rem; color: var(--text2); min-width: 100px; }
+.dd-zone-slot { flex: 1; min-height: 36px; display: flex; align-items: center; }
+.dd-placed {
+  background: var(--cyan); color: #0a0a1a; font-weight: 700;
+  border-radius: 6px; padding: 6px 14px; font-size: 0.85rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.dd-remove { cursor: pointer; font-size: 0.9rem; }
+
+.btn-dd-check {
+  margin-top: 14px; width: 100%;
+  background: linear-gradient(135deg, var(--green), #059669);
+  border: none; border-radius: 10px; color: white;
+  font-family: 'Exo 2', sans-serif; font-size: 1rem; font-weight: 700;
+  padding: 13px; cursor: pointer; transition: all 0.2s;
+  display: none;
+}
+.btn-dd-check:hover { transform: scale(1.02); }
+.btn-dd-check.visible { display: block; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 600px) {
+  .chapters-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .chapter-card { padding: 16px; }
+  .card-title { font-size: 0.9rem; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  #game-header { padding: 10px 14px; }
+  .header-logo { font-size: 0.9rem; }
+  .stat-pill { padding: 5px 10px; font-size: 0.75rem; }
+}
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 24px;
+  font-weight: 700; font-size: 0.95rem;
+  z-index: 999; opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="game-header">
+  <div class="header-logo">⚔️ MathQuest</div>
+  <div class="header-stats">
+    <div class="stat-pill gold"><span class="icon">⭐</span><span id="hdr-score">0</span> pts</div>
+    <div class="stat-pill cyan"><span class="icon">🏅</span>Niv. <span id="hdr-level">1</span></div>
+    <button id="btn-progress-header" onclick="showScreen('progress')">📊 Progression</button>
+  </div>
+</header>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: WELCOME                              -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="screen active" id="screen-welcome">
+  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;">
+    <div class="welcome-badge">🧙‍♂️</div>
+    <h1 class="welcome-title">MathQuest</h1>
+    <p class="welcome-subtitle">L'Aventure des Nombres</p>
+
+    <div class="name-input-wrap">
+      <input type="text" id="player-name" placeholder="Ton nom d'aventurier…" maxlength="20">
+      <button class="btn-start" onclick="startGame()">Commencer ⚔️</button>
+    </div>
+
+    <div class="chapters-preview">
+      <div class="ch-preview-card"><span class="ch-icon">🔢</span>Ensembles</div>
+      <div class="ch-preview-card"><span class="ch-icon">📏</span>Intervalles</div>
+      <div class="ch-preview-card"><span class="ch-icon">💯</span>Pourcentages</div>
+      <div class="ch-preview-card"><span class="ch-icon">📈</span>Fonctions</div>
+      <div class="ch-preview-card"><span class="ch-icon">📉</span>Graphiques</div>
+      <div class="ch-preview-card"><span class="ch-icon">📐</span>Géométrie</div>
+      <div class="ch-preview-card"><span class="ch-icon">🔺</span>Pythagore</div>
+      <div class="ch-preview-card"><span class="ch-icon">📐</span>Thalès</div>
+      <div class="ch-preview-card"><span class="ch-icon">🌊</span>Trigono.</div>
+      <div class="ch-preview-card"><span class="ch-icon">🔣</span>Identités</div>
+      <div class="ch-preview-card"><span class="ch-icon">📊</span>Taux d'évol.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: MAP                                  -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="screen" id="screen-map">
+  <div class="map-header">
+    <h2>🗺️ Carte du Royaume</h2>
+    <p>Choisis ton prochain défi, <strong id="map-player-name">Aventurier</strong> !</p>
+    <div class="level-xp-bar">
+      <div class="xp-label"><span>Niveau <span id="xp-level">1</span></span><span><span id="xp-cur">0</span>/<span id="xp-max">500</span> XP</span></div>
+      <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="chapters-grid" id="chapters-grid"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: CHAPTER                              -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="screen" id="screen-chapter">
+  <div class="ch-nav">
+    <button class="btn-back" onclick="showScreen('map')">← Carte</button>
+    <div class="ch-progress-dots" id="ch-dots"></div>
+    <div style="margin-left:auto;font-size:0.85rem;color:var(--text2);">Score: <span id="ch-live-score" style="color:var(--gold);font-weight:700;">0</span></div>
+  </div>
+
+  <!-- Lesson -->
+  <div class="lesson-panel active" id="lesson-panel">
+    <div class="lesson-header">
+      <div class="lesson-icon" id="lesson-icon">📘</div>
+      <div class="lesson-title-wrap">
+        <h2 id="lesson-title">Titre</h2>
+        <span>📖 Cours</span>
+      </div>
+    </div>
+    <div class="lesson-body" id="lesson-body"></div>
+    <button class="btn-continue" onclick="startExercises()">C'est parti ! 🎮</button>
+  </div>
+
+  <!-- Exercise -->
+  <div class="exercise-panel" id="exercise-panel">
+    <div class="ex-header">
+      <div class="ex-type-tag" id="ex-type-tag">QCM</div>
+      <div class="ex-question" id="ex-question"></div>
+    </div>
+    <div id="ex-body"></div>
+    <div class="feedback-box" id="feedback-box">
+      <div class="fb-title" id="fb-title"></div>
+      <div class="fb-text" id="fb-text"></div>
+    </div>
+    <button class="btn-next-ex" id="btn-next-ex" onclick="nextExercise()">Exercice suivant →</button>
+  </div>
+
+  <!-- Chapter Complete -->
+  <div class="chapter-complete" id="chapter-complete">
+    <div style="font-size:4rem;">🏆</div>
+    <div class="complete-title">Chapitre Terminé !</div>
+    <div class="stars-earned" id="complete-stars">⭐⭐⭐</div>
+    <div class="points-earned" id="complete-points">+300 points</div>
+    <div class="badge-earned" id="badge-earned">🏅 Badge débloqué !</div>
+    <button class="btn-back-map" onclick="showScreen('map')">Retour à la carte 🗺️</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: PROGRESS                             -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="screen" id="screen-progress">
+  <button class="btn-back" onclick="showScreen('map')" style="margin-bottom:20px;">← Carte</button>
+  <div class="progress-title">📊 Ta Progression</div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="val" id="pg-score">0</div><div class="lbl">⭐ Points Totaux</div></div>
+    <div class="stat-card"><div class="val" id="pg-level">1</div><div class="lbl">🏅 Niveau</div></div>
+    <div class="stat-card"><div class="val" id="pg-chapters">0/11</div><div class="lbl">📚 Chapitres</div></div>
+    <div class="stat-card"><div class="val" id="pg-badges">0</div><div class="lbl">🏆 Badges</div></div>
+  </div>
+
+  <div class="badges-section">
+    <h3>🏆 Badges</h3>
+    <div class="badges-grid" id="badges-grid"></div>
+  </div>
+
+  <div class="chapters-progress">
+    <h3>📚 Chapitres</h3>
+    <div id="ch-progress-list"></div>
+  </div>
+
+  <button class="btn-quiz-final" onclick="startFinalQuiz()">🔥 Mode Quiz Final — Teste tout !</button>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SCREEN: FINAL QUIZ                           -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="screen" id="screen-quiz">
+  <button class="btn-back" onclick="showScreen('progress')" style="margin-bottom:20px;">← Progression</button>
+  <div class="quiz-title">🔥 Quiz Final</div>
+  <div class="quiz-sub">10 questions — tous chapitres mélangés</div>
+  <div class="quiz-counter" id="quiz-counter"></div>
+
+  <div id="quiz-question-wrap"></div>
+  <div class="quiz-result-wrap" id="quiz-result" style="display:none;">
+    <div style="font-size:3rem;">🏆</div>
+    <div class="quiz-score" id="quiz-score-display">0<span>/10</span></div>
+    <div style="color:var(--text2);margin-bottom:24px;" id="quiz-result-msg"></div>
+    <button class="btn-back-map" onclick="showScreen('map')">Retour à la carte</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  DATA & LOGIC                                -->
+<!-- ══════════════════════════════════════════════ -->
+<script>
+// ─── DATA ─────────────────────────────────────
+const CHAPTERS = [
+  {
+    id: 0, icon: '🔢', title: 'Ensembles de nombres',
+    desc: 'ℕ, ℤ, 𝔻, ℚ, ℝ et leurs inclusions',
+    badge: '🔢 Maître des Nombres',
+    colors: ['#f5c542','#e0a820'],
+    lesson: `<strong>Les ensembles de nombres</strong> classifient tous les nombres que tu peux rencontrer.<br><br>
+<div class="highlight">ℕ = {0, 1, 2, 3, …}  → Entiers naturels</div>
+<div class="highlight">ℤ = {…, -2, -1, 0, 1, 2, …}  → Entiers relatifs</div>
+<div class="highlight">𝔻 = {décimaux finis}  → ex: 0,5 ; 1,25</div>
+<div class="highlight">ℚ = {fractions p/q}  → ex: 1/3 ; -2/5</div>
+<div class="highlight">ℝ = tous les nombres réels  → ex: π, √2</div>
+<div class="formula">ℕ ⊂ ℤ ⊂ 𝔻 ⊂ ℚ ⊂ ℝ</div>
+<div class="tip">Astuce : chaque ensemble contient le précédent. ℝ est le plus grand !</div>`,
+    exercises: [
+      {
+        type: 'qcm',
+        question: 'Le nombre <span class="math">-3</span> appartient à quel(s) ensemble(s) ?',
+        options: ['ℕ seulement','ℤ seulement','ℤ et ℚ et ℝ','ℝ seulement'],
+        correct: 2,
+        feedback: '-3 est un entier relatif (ℤ), donc aussi dans ℚ et ℝ. Mais pas dans ℕ (entiers positifs) ni 𝔻.'
+      },
+      {
+        type: 'qcm',
+        question: 'Le nombre <span class="math">√2 ≈ 1,414…</span> appartient à :',
+        options: ['ℚ (c\'est une fraction)','𝔻 (c\'est un décimal)','ℝ uniquement (irrationnel)','ℤ'],
+        correct: 2,
+        feedback: '√2 est irrationnel : il ne peut pas s\'écrire comme fraction p/q. Il appartient uniquement à ℝ !'
+      }
+    ]
+  },
+  {
+    id: 1, icon: '📏', title: 'Intervalles',
+    desc: 'Crochets, bornes, inégalités',
+    badge: '📏 Maître des Intervalles',
+    colors: ['#00e5ff','#00b8d4'],
+    lesson: `Un <strong>intervalle</strong> est un ensemble de nombres entre deux bornes.<br><br>
+<div class="highlight">[a ; b]  → bornes incluses  (a ≤ x ≤ b)</div>
+<div class="highlight">]a ; b[  → bornes exclues   (a < x < b)</div>
+<div class="highlight">[a ; +∞[  → de a jusqu'à l'infini</div>
+<div class="formula">x ∈ [2 ; 5]  signifie  2 ≤ x ≤ 5</div>
+<div class="tip">[ = crochet fermé = borne incluse<br>] = crochet ouvert = borne exclue</div>`,
+    exercises: [
+      {
+        type: 'tf',
+        question: 'Le nombre <span class="math">3</span> appartient à l\'intervalle <span class="math">]3 ; 7[</span>',
+        correct: false,
+        feedback: 'FAUX ! ]3 ; 7[ signifie 3 < x < 7. La borne 3 est exclue (crochet ouvert). Donc 3 n\'appartient pas à cet intervalle.'
+      },
+      {
+        type: 'qcm',
+        question: 'Quelle inégalité correspond à <span class="math">x ∈ [-1 ; 4[</span> ?',
+        options: ['-1 < x < 4','-1 ≤ x < 4','-1 < x ≤ 4','-1 ≤ x ≤ 4'],
+        correct: 1,
+        feedback: '[-1 signifie -1 est inclus (≤) et 4[ signifie 4 est exclu (<). Donc : -1 ≤ x < 4.'
+      }
+    ]
+  },
+  {
+    id: 2, icon: '💯', title: 'Pourcentages',
+    desc: 'Conversion et évolutions',
+    badge: '💯 Expert des Pourcentages',
+    colors: ['#10b981','#059669'],
+    lesson: `Les <strong>pourcentages</strong> expriment une proportion sur 100.<br><br>
+<div class="highlight">25% = 25/100 = 0,25</div>
+<div class="formula">Augmentation de t% : × (1 + t/100)<br>Diminution de t% : × (1 − t/100)</div>
+<strong>Exemples :</strong>
+<div class="highlight">+20% → × 1,20<br>-15% → × 0,85</div>
+<div class="tip">Pour trouver x% de A : A × x/100<br>Ex: 30% de 200 = 200 × 0,3 = 60</div>`,
+    exercises: [
+      {
+        type: 'calc',
+        question: 'Un article coûte <span class="math">80 €</span>. Il subit une réduction de <span class="math">25%</span>. Quel est le nouveau prix (en €) ?',
+        correct: '60',
+        unit: '€',
+        feedback: '80 × (1 - 0,25) = 80 × 0,75 = 60 €. On multiplie par 0,75 pour une réduction de 25%.'
+      },
+      {
+        type: 'qcm',
+        question: 'Un prix augmente de <span class="math">10%</span> puis diminue de <span class="math">10%</span>. Au final :',
+        options: ['Il revient au prix initial','Il a augmenté de 1%','Il a diminué de 1%','Il a diminué de 10%'],
+        correct: 2,
+        feedback: '×1,10 × 0,90 = ×0,99. Le prix final est 99% du prix initial, soit une baisse de 1% ! Les évolutions successives ne s\'annulent pas.'
+      }
+    ]
+  },
+  {
+    id: 3, icon: '📈', title: 'Fonctions',
+    desc: 'f(x) = ax + b, croissance',
+    badge: '📈 Maître des Fonctions',
+    colors: ['#8b5cf6','#6d28d9'],
+    lesson: `Une <strong>fonction affine</strong> a la forme <strong>f(x) = ax + b</strong><br><br>
+<div class="highlight">a = coefficient directeur (pente)<br>b = ordonnée à l'origine</div>
+<div class="formula">Si a > 0 : f est croissante ↗<br>Si a < 0 : f est décroissante ↘<br>Si a = 0 : f est constante →</div>
+<strong>Exemple :</strong>
+<div class="highlight">f(x) = 2x + 3<br>f(4) = 2×4 + 3 = 11</div>
+<div class="tip">Pour calculer f(x), remplace juste x par la valeur !</div>`,
+    exercises: [
+      {
+        type: 'calc',
+        question: 'Pour <span class="math">f(x) = 3x − 5</span>, calcule <span class="math">f(4)</span>.',
+        correct: '7',
+        unit: '',
+        feedback: 'f(4) = 3×4 - 5 = 12 - 5 = 7. On remplace x par 4 dans l\'expression.'
+      },
+      {
+        type: 'qcm',
+        question: 'La fonction <span class="math">f(x) = -2x + 7</span> est :',
+        options: ['Croissante car a = -2','Décroissante car a = -2 < 0','Constante','Croissante car b = 7 > 0'],
+        correct: 1,
+        feedback: 'Le coefficient a = -2 est négatif, donc f est décroissante. C\'est le signe de a qui détermine la croissance !'
+      }
+    ]
+  },
+  {
+    id: 4, icon: '📉', title: 'Lecture graphique',
+    desc: 'Intersections, abscisses, ordonnées',
+    badge: '📉 Lecteur de Graphiques',
+    colors: ['#ec4899','#db2777'],
+    lesson: `Lire un graphique, c'est extraire des informations visuellement.<br><br>
+<div class="highlight">Abscisse → axe horizontal (x)<br>Ordonnée → axe vertical (y)</div>
+<div class="formula">Point d'intersection : où deux courbes se croisent<br>→ même x, même y pour les deux fonctions</div>
+<strong>Lire f(a) :</strong>
+<div class="highlight">1. Repère x = a sur l'axe horizontal<br>2. Monte jusqu'à la courbe<br>3. Lis l'ordonnée correspondante</div>
+<div class="tip">L'intersection de f et g en x=a signifie f(a) = g(a)</div>`,
+    exercises: [
+      {
+        type: 'tf',
+        question: 'Sur un graphique, le point (3 ; -2) a pour abscisse -2 et pour ordonnée 3.',
+        correct: false,
+        feedback: 'FAUX ! Un point (x ; y) a x comme abscisse et y comme ordonnée. Donc (3 ; -2) a abscisse = 3 et ordonnée = -2.'
+      },
+      {
+        type: 'qcm',
+        question: 'Les courbes de f et g se croisent au point (2 ; 5). Que peut-on en déduire ?',
+        options: ['f(5) = g(5) = 2','f(2) = g(2) = 5','f(2) = 5 et g(2) = 2','f et g sont identiques'],
+        correct: 1,
+        feedback: 'Le point (2 ; 5) signifie que pour x=2, les deux fonctions valent 5. Donc f(2) = g(2) = 5.'
+      }
+    ]
+  },
+  {
+    id: 5, icon: '📐', title: 'Géométrie',
+    desc: 'Distance, milieu de segment',
+    badge: '📐 Géomètre Expert',
+    colors: ['#f97316','#ea580c'],
+    lesson: `Deux formules essentielles dans le plan avec A(xA;yA) et B(xB;yB) :<br><br>
+<div class="formula">Distance AB = √[(xB−xA)² + (yB−yA)²]</div>
+<div class="formula">Milieu M = ((xA+xB)/2 ; (yA+yB)/2)</div>
+<strong>Exemple :</strong> A(1;2) et B(4;6)
+<div class="highlight">AB = √[(4−1)² + (6−2)²] = √[9+16] = √25 = 5<br>M = ((1+4)/2 ; (2+6)/2) = (2,5 ; 4)</div>
+<div class="tip">Pour le milieu : moyenne des x, moyenne des y !</div>`,
+    exercises: [
+      {
+        type: 'calc',
+        question: 'Calcule la distance entre <span class="math">A(0 ; 0)</span> et <span class="math">B(3 ; 4)</span>.',
+        correct: '5',
+        unit: '',
+        feedback: 'AB = √[(3-0)² + (4-0)²] = √[9+16] = √25 = 5. C\'est un triangle 3-4-5 !'
+      },
+      {
+        type: 'qcm',
+        question: 'Le milieu de <span class="math">A(2 ; 6)</span> et <span class="math">B(8 ; 4)</span> est :',
+        options: ['(5 ; 5)','(3 ; 5)','(5 ; 3)','(10 ; 10)'],
+        correct: 0,
+        feedback: 'M = ((2+8)/2 ; (6+4)/2) = (10/2 ; 10/2) = (5 ; 5). Moyenne des abscisses et moyenne des ordonnées !'
+      }
+    ]
+  },
+  {
+    id: 6, icon: '🔺', title: 'Pythagore',
+    desc: 'Longueurs et triangles rectangles',
+    badge: '🔺 Maître de Pythagore',
+    colors: ['#00e5ff','#8b5cf6'],
+    lesson: `Dans un triangle rectangle, le théorème de <strong>Pythagore</strong> relie les côtés :<br><br>
+<div class="formula">c² = a² + b²</div>
+où <strong>c</strong> est l'hypoténuse (côté opposé à l'angle droit).<br><br>
+<strong>Calcul d'un côté :</strong>
+<div class="highlight">Hypoténuse : c = √(a² + b²)<br>Côté : a = √(c² − b²)</div>
+<strong>Vérifier un triangle rectangle :</strong>
+<div class="highlight">Vérifie que grand_côté² = somme des carrés des deux autres</div>
+<div class="tip">L'hypoténuse est toujours le plus grand côté !</div>`,
+    exercises: [
+      {
+        type: 'calc',
+        question: 'Dans un triangle rectangle, les deux côtés de l\'angle droit mesurent <span class="math">6</span> et <span class="math">8</span>. Calcule l\'hypoténuse.',
+        correct: '10',
+        unit: '',
+        feedback: 'c = √(6² + 8²) = √(36 + 64) = √100 = 10. C\'est le classique triangle 6-8-10 !'
+      },
+      {
+        type: 'tf',
+        question: 'Un triangle de côtés <span class="math">5 ; 12 ; 13</span> est rectangle.',
+        correct: true,
+        feedback: 'VRAI ! 13² = 169 et 5² + 12² = 25 + 144 = 169. Comme 13² = 5² + 12², c\'est bien un triangle rectangle.'
+      }
+    ]
+  },
+  {
+    id: 7, icon: '🔷', title: 'Thalès',
+    desc: 'Proportions dans les triangles',
+    badge: '🔷 Théorème de Thalès',
+    colors: ['#10b981','#00e5ff'],
+    lesson: `Le <strong>théorème de Thalès</strong> dit que si deux droites parallèles coupent deux droites sécantes, alors les longueurs sont proportionnelles.<br><br>
+<div class="formula">Si (DE) ∥ (BC), alors :<br>AD/AB = AE/AC = DE/BC</div>
+<strong>Utilisation :</strong>
+<div class="highlight">Si AD=3, AB=6, AC=8 :<br>AE/AC = AD/AB<br>AE = AC × AD/AB = 8 × 3/6 = 4</div>
+<div class="tip">Thalès = rapport de proportionnalité entre les segments</div>`,
+    exercises: [
+      {
+        type: 'qcm',
+        question: '(DE) ∥ (BC). On sait <span class="math">AD=4, AB=10, DE=6</span>. Calcule <span class="math">BC</span>.',
+        options: ['BC = 15','BC = 12','BC = 8','BC = 24'],
+        correct: 0,
+        feedback: 'DE/BC = AD/AB → 6/BC = 4/10 → BC = 6×10/4 = 15. On applique la proportionnalité de Thalès.'
+      },
+      {
+        type: 'tf',
+        question: 'Si (DE) ∥ (BC) avec AD=2, DB=3, alors AD/AB = 2/5.',
+        correct: true,
+        feedback: 'VRAI ! AB = AD + DB = 2 + 3 = 5, donc AD/AB = 2/5. Attention à bien calculer AB = AD + DB !'
+      }
+    ]
+  },
+  {
+    id: 8, icon: '🌊', title: 'Trigonométrie',
+    desc: 'cos, sin et identité',
+    badge: '🌊 Maître du Triangle',
+    colors: ['#f5c542','#ec4899'],
+    lesson: `Dans un triangle rectangle d'angle α :<br><br>
+<div class="formula">cos(α) = côté adjacent / hypoténuse<br>sin(α) = côté opposé / hypoténuse</div>
+<strong>Relation fondamentale :</strong>
+<div class="formula">cos²(α) + sin²(α) = 1</div>
+<strong>Valeurs à connaître :</strong>
+<div class="highlight">cos(30°) = √3/2 ≈ 0,866<br>cos(45°) = √2/2 ≈ 0,707<br>cos(60°) = 1/2 = 0,5</div>
+<div class="tip">Mnémotechnique : SOH-CAH-TOA<br>Sin=Opp/Hyp · Cos=Adj/Hyp</div>`,
+    exercises: [
+      {
+        type: 'tf',
+        question: 'Pour tout angle α, on a <span class="math">cos²(α) + sin²(α) = 1</span>.',
+        correct: true,
+        feedback: 'VRAI ! C\'est l\'identité trigonométrique fondamentale, valable pour tout angle α.'
+      },
+      {
+        type: 'qcm',
+        question: 'Si <span class="math">sin(α) = 0,6</span>, alors <span class="math">cos(α)</span> vaut (en valeur absolue) :',
+        options: ['0,4','0,8','0,36','1,6'],
+        correct: 1,
+        feedback: 'cos²(α) = 1 - sin²(α) = 1 - 0,36 = 0,64, donc cos(α) = 0,8. On utilise l\'identité cos²+sin²=1 !'
+      }
+    ]
+  },
+  {
+    id: 9, icon: '🔣', title: 'Identités remarquables',
+    desc: '(a+b)², (a-b)², (a-b)(a+b)',
+    badge: '🔣 Algébriste Expert',
+    colors: ['#8b5cf6','#ec4899'],
+    lesson: `Les <strong>identités remarquables</strong> permettent de développer ou factoriser rapidement.<br><br>
+<div class="formula">(a + b)² = a² + 2ab + b²</div>
+<div class="formula">(a − b)² = a² − 2ab + b²</div>
+<div class="formula">(a − b)(a + b) = a² − b²</div>
+<strong>Exemples :</strong>
+<div class="highlight">(x + 3)² = x² + 6x + 9<br>(2x − 1)² = 4x² − 4x + 1<br>(x−5)(x+5) = x² − 25</div>
+<div class="tip">La 3ème s'appelle "différence de carrés" — très utile pour factoriser !</div>`,
+    exercises: [
+      {
+        type: 'qcm',
+        question: 'Développe <span class="math">(x + 4)²</span>.',
+        options: ['x² + 16','x² + 4x + 16','x² + 8x + 16','x² + 8x + 8'],
+        correct: 2,
+        feedback: '(x+4)² = x² + 2×x×4 + 4² = x² + 8x + 16. N\'oublie pas le terme en 2ab !'
+      },
+      {
+        type: 'qcm',
+        question: 'Factorise <span class="math">x² − 9</span>.',
+        options: ['(x−3)²','(x+3)(x−3)','(x−9)(x+1)','Impossible'],
+        correct: 1,
+        feedback: 'x² - 9 = x² - 3² = (x-3)(x+3). C\'est la différence de carrés : a²-b² = (a-b)(a+b).'
+      }
+    ]
+  },
+  {
+    id: 10, icon: '📊', title: "Taux d'évolution",
+    desc: 'Formule et évolutions successives',
+    badge: "📊 Expert Économique",
+    colors: ['#f97316','#f5c542'],
+    lesson: `Le <strong>taux d'évolution</strong> mesure une variation en pourcentage.<br><br>
+<div class="formula">t = (Vf − Vi) / Vi</div>
+<div class="highlight">t > 0 → augmentation<br>t < 0 → diminution<br>t en % : multiplier par 100</div>
+<strong>Évolutions successives :</strong>
+<div class="formula">t_global = (1+t₁)(1+t₂) − 1</div>
+<strong>Exemple :</strong>
+<div class="highlight">Vi=200, Vf=250<br>t = (250−200)/200 = 50/200 = 0,25 = +25%</div>
+<div class="tip">Pour les évolutions successives, on multiplie les coefficients multiplicateurs !</div>`,
+    exercises: [
+      {
+        type: 'calc',
+        question: 'Une action passe de <span class="math">50 €</span> à <span class="math">65 €</span>. Quel est le taux d\'évolution en % ?',
+        correct: '30',
+        unit: '%',
+        feedback: 't = (65-50)/50 = 15/50 = 0,30 = 30%. La valeur a augmenté de 30%.'
+      },
+      {
+        type: 'qcm',
+        question: 'Une valeur augmente de <span class="math">20%</span> puis de <span class="math">10%</span>. Le taux global est :',
+        options: ['30%','32%','28%','20%'],
+        correct: 1,
+        feedback: '(1,20)(1,10) = 1,32, soit une hausse globale de 32%. On ne peut pas juste additionner 20+10 !'
+      }
+    ]
+  }
+];
+
+const FINAL_QUIZ = [
+  { q: 'Le nombre π (pi) appartient à :', opts: ['ℚ','𝔻','ℝ uniquement','ℤ'], c: 2, expl: 'π est irrationnel, il appartient uniquement à ℝ.' },
+  { q: 'L\'intervalle ]−2 ; 3] contient-il le nombre −2 ?', opts: ['Oui','Non'], c: 1, expl: 'Le crochet ] exclut la borne. Donc −2 n\'appartient pas à ]−2 ; 3].' },
+  { q: '75% en fraction décimale =', opts: ['0,075','7,5','0,75','75'], c: 2, expl: '75% = 75/100 = 0,75.' },
+  { q: 'f(x) = −3x + 5. f(2) = ?', opts: ['1','11','−1','−11'], c: 2, expl: 'f(2) = −3×2+5 = −6+5 = −1.' },
+  { q: 'Distance entre A(0;0) et B(5;12) ?', opts: ['13','17','7','169'], c: 0, expl: '√(25+144) = √169 = 13.' },
+  { q: '(a+b)² = ?', opts: ['a²+b²','a²+ab+b²','a²+2ab+b²','2a+2b'], c: 2, expl: '(a+b)² = a² + 2ab + b².' },
+  { q: 'Dans un triangle rectangle, cos(α) = ?', opts: ['opposé/hyp','adj/hyp','opp/adj','hyp/adj'], c: 1, expl: 'cos = côté adjacent / hypoténuse.' },
+  { q: 'Vi=100, Vf=130. Taux d\'évolution ?', opts: ['13%','30%','3%','103%'], c: 1, expl: 't = (130-100)/100 = 30%.' },
+  { q: '5² + 12² = ?', opts: ['144','169','119','289'], c: 1, expl: '25 + 144 = 169 = 13².' },
+  { q: 'Si (DE)∥(BC), AD=3, AB=9, DE=4. BC = ?', opts: ['12','6','36','1,3'], c: 0, expl: 'BC = DE × AB/AD = 4×9/3 = 12.' }
+];
+
+// ─── STATE ────────────────────────────────────
+let state = {
+  playerName: 'Aventurier',
+  score: 0,
+  level: 1,
+  xp: 0,
+  chaptersProgress: Array(11).fill(null), // null | {stars, score}
+  badges: [],
+  quizScore: 0
+};
+
+// ─── LOAD / SAVE ──────────────────────────────
+function loadState() {
+  const s = localStorage.getItem('mathquest_state');
+  if (s) { try { state = JSON.parse(s); } catch(e){} }
+}
+function saveState() {
+  localStorage.setItem('mathquest_state', JSON.stringify(state));
+}
+loadState();
+
+// ─── CHAPTER PLAYTHROUGH ──────────────────────
+let currentChapter = null;
+let currentEx = 0;
+let chapterScore = 0;
+let correctAnswers = 0;
+
+// ─── SCREEN MANAGER ───────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.getElementById('game-header').classList.toggle('visible', id !== 'welcome');
+  if (id === 'map') renderMap();
+  if (id === 'progress') renderProgress();
+  updateHeader();
+  window.scrollTo(0,0);
+}
+
+// ─── GAME START ───────────────────────────────
+function startGame() {
+  const name = document.getElementById('player-name').value.trim() || 'Aventurier';
+  state.playerName = name;
+  saveState();
+  document.getElementById('map-player-name').textContent = name;
+  showScreen('map');
+}
+
+// ─── HEADER UPDATE ────────────────────────────
+function updateHeader() {
+  document.getElementById('hdr-score').textContent = state.score;
+  document.getElementById('hdr-level').textContent = state.level;
+  document.getElementById('xp-level').textContent = state.level;
+  document.getElementById('xp-cur').textContent = state.xp;
+  const xpNeeded = state.level * 500;
+  document.getElementById('xp-max').textContent = xpNeeded;
+  document.getElementById('xp-fill').style.width = Math.min(100, (state.xp / xpNeeded) * 100) + '%';
+}
+
+// ─── RENDER MAP ───────────────────────────────
+function renderMap() {
+  document.getElementById('map-player-name').textContent = state.playerName;
+  updateHeader();
+  const grid = document.getElementById('chapters-grid');
+  grid.innerHTML = '';
+
+  CHAPTERS.forEach((ch, i) => {
+    const prog = state.chaptersProgress[i];
+    const stars = prog ? prog.stars : 0;
+    const starStr = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+    const badgeClass = prog ? 'done' : '';
+    const badgeText = prog ? `⭐ ${stars}/3` : 'À faire';
+    const cardClass = prog ? 'completed' : '';
+
+    const card = document.createElement('div');
+    card.className = `chapter-card ${cardClass}`;
+    card.style.setProperty('--accent-a', ch.colors[0]);
+    card.style.setProperty('--accent-b', ch.colors[1]);
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="card-icon">${ch.icon}</div>
+        <div class="card-badge ${badgeClass}">${badgeText}</div>
+      </div>
+      <div class="card-title">${ch.title}</div>
+      <div class="card-desc">${ch.desc}</div>
+      <div class="card-stars">${starStr}</div>
+    `;
+    card.onclick = () => openChapter(i);
+    grid.appendChild(card);
+  });
+}
+
+// ─── OPEN CHAPTER ─────────────────────────────
+function openChapter(idx) {
+  currentChapter = idx;
+  currentEx = 0;
+  chapterScore = 0;
+  correctAnswers = 0;
+
+  const ch = CHAPTERS[idx];
+  showScreen('chapter');
+
+  // Dots: lesson + 2 exercises
+  const dots = document.getElementById('ch-dots');
+  dots.innerHTML = '<div class="dot active"></div><div class="dot"></div><div class="dot"></div>';
+
+  // Lesson
+  document.getElementById('lesson-icon').textContent = ch.icon;
+  document.getElementById('lesson-title').textContent = ch.title;
+  document.getElementById('lesson-body').innerHTML = ch.lesson;
+  document.getElementById('ch-live-score').textContent = chapterScore;
+
+  // Show lesson, hide rest
+  document.getElementById('lesson-panel').classList.add('active');
+  document.getElementById('exercise-panel').classList.remove('active');
+  document.getElementById('chapter-complete').classList.remove('active');
+  document.getElementById('chapter-complete').style.display = '';
+}
+
+// ─── START EXERCISES ──────────────────────────
+function startExercises() {
+  document.getElementById('lesson-panel').classList.remove('active');
+  document.getElementById('exercise-panel').classList.add('active');
+  renderExercise(0);
+  updateDots(1);
+}
+
+// ─── RENDER EXERCISE ──────────────────────────
+function renderExercise(exIdx) {
+  currentEx = exIdx;
+  const ch = CHAPTERS[currentChapter];
+  const ex = ch.exercises[exIdx];
+
+  // Reset
+  document.getElementById('feedback-box').style.display = 'none';
+  document.getElementById('btn-next-ex').style.display = 'none';
+
+  const typeLabels = { qcm: 'QCM', tf: 'VRAI / FAUX', calc: 'CALCUL RAPIDE', dragdrop: 'GLISSER-DÉPOSER' };
+  document.getElementById('ex-type-tag').textContent = typeLabels[ex.type] || ex.type.toUpperCase();
+  document.getElementById('ex-question').innerHTML = `Question ${exIdx+1}/2 — ${ex.question}`;
+
+  const body = document.getElementById('ex-body');
+  body.innerHTML = '';
+
+  if (ex.type === 'qcm') renderQCM(ex, body);
+  else if (ex.type === 'tf') renderTF(ex, body);
+  else if (ex.type === 'calc') renderCalc(ex, body);
+  else if (ex.type === 'dragdrop') renderDragDrop(ex, body);
+}
+
+// ─── QCM ──────────────────────────────────────
+function renderQCM(ex, body) {
+  const wrap = document.createElement('div');
+  wrap.className = 'qcm-options';
+  const letters = ['A','B','C','D'];
+  ex.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'qcm-btn';
+    btn.innerHTML = `<span class="qcm-letter">${letters[i]}</span>${opt}`;
+    btn.onclick = () => {
+      wrap.querySelectorAll('.qcm-btn').forEach(b => b.disabled = true);
+      const isCorrect = i === ex.correct;
+      btn.classList.add(isCorrect ? 'correct' : 'wrong');
+      if (!isCorrect) wrap.querySelectorAll('.qcm-btn')[ex.correct].classList.add('correct');
+      showFeedback(isCorrect, ex.feedback);
+      if (isCorrect) { chapterScore += 100; correctAnswers++; spawnParticles(btn, '+100'); }
+    };
+    wrap.appendChild(btn);
+  });
+  body.appendChild(wrap);
+}
+
+// ─── TRUE/FALSE ───────────────────────────────
+function renderTF(ex, body) {
+  const wrap = document.createElement('div');
+  wrap.className = 'tf-options';
+  [['✅ VRAI', true], ['❌ FAUX', false]].forEach(([label, val]) => {
+    const btn = document.createElement('button');
+    btn.className = 'tf-btn';
+    btn.textContent = label;
+    btn.onclick = () => {
+      wrap.querySelectorAll('.tf-btn').forEach(b => b.disabled = true);
+      const isCorrect = val === ex.correct;
+      btn.classList.add(isCorrect ? 'correct' : 'wrong');
+      showFeedback(isCorrect, ex.feedback);
+      if (isCorrect) { chapterScore += 100; correctAnswers++; spawnParticles(btn, '+100'); }
+    };
+    wrap.appendChild(btn);
+  });
+  body.appendChild(wrap);
+}
+
+// ─── CALCUL RAPIDE ────────────────────────────
+function renderCalc(ex, body) {
+  const wrap = document.createElement('div');
+  wrap.className = 'calc-input-wrap';
+
+  const input = document.createElement('input');
+  input.type = 'number'; input.className = 'calc-input';
+  input.placeholder = ex.unit ? `Réponse en ${ex.unit}` : 'Ta réponse…';
+
+  const btn = document.createElement('button');
+  btn.className = 'calc-submit';
+  btn.textContent = 'Valider ✓';
+
+  const check = () => {
+    const val = input.value.trim();
+    const isCorrect = val === ex.correct || parseFloat(val) === parseFloat(ex.correct);
+    input.disabled = true; btn.disabled = true;
+    showFeedback(isCorrect, ex.feedback);
+    if (isCorrect) { chapterScore += 100; correctAnswers++; spawnParticles(btn, '+100'); }
+    else showFeedback(false, `Réponse correcte : ${ex.correct}${ex.unit}. ${ex.feedback}`);
+  };
+
+  btn.onclick = check;
+  input.onkeydown = e => { if (e.key === 'Enter') check(); };
+  wrap.appendChild(input); wrap.appendChild(btn);
+  body.appendChild(wrap);
+}
+
+// ─── FEEDBACK ────────────────────────────────
+function showFeedback(isCorrect, text) {
+  const box = document.getElementById('feedback-box');
+  const title = document.getElementById('fb-title');
+  const fbText = document.getElementById('fb-text');
+
+  box.className = 'feedback-box ' + (isCorrect ? 'correct' : 'wrong');
+  title.textContent = isCorrect ? '✅ Bravo ! Bonne réponse !' : '❌ Pas tout à fait…';
+  fbText.textContent = text;
+  box.style.display = 'block';
+
+  const nextBtn = document.getElementById('btn-next-ex');
+  nextBtn.style.display = 'block';
+  nextBtn.textContent = currentEx < CHAPTERS[currentChapter].exercises.length - 1
+    ? 'Exercice suivant →'
+    : '🏆 Voir mes résultats !';
+
+  document.getElementById('ch-live-score').textContent = chapterScore;
+}
+
+// ─── NEXT EXERCISE ───────────────────────────
+function nextExercise() {
+  const ch = CHAPTERS[currentChapter];
+  if (currentEx < ch.exercises.length - 1) {
+    renderExercise(currentEx + 1);
+    updateDots(currentEx + 2);
+  } else {
+    finishChapter();
+  }
+}
+
+// ─── FINISH CHAPTER ──────────────────────────
+function finishChapter() {
+  document.getElementById('exercise-panel').classList.remove('active');
+  const comp = document.getElementById('chapter-complete');
+  comp.classList.add('active');
+  comp.style.display = '';
+
+  const stars = correctAnswers === 2 ? 3 : correctAnswers === 1 ? 2 : 1;
+  const existing = state.chaptersProgress[currentChapter];
+  const prevStars = existing ? existing.stars : 0;
+
+  if (!existing || stars > prevStars) {
+    state.chaptersProgress[currentChapter] = { stars, score: chapterScore };
+  }
+
+  state.score += chapterScore;
+  state.xp += chapterScore;
+
+  // Level up
+  while (state.xp >= state.level * 500) {
+    state.xp -= state.level * 500;
+    state.level++;
+    showToast(`🎉 Niveau ${state.level} atteint !`);
+  }
+
+  // Badge
+  const ch = CHAPTERS[currentChapter];
+  if (!state.badges.includes(ch.badge) && stars >= 2) {
+    state.badges.push(ch.badge);
+    document.getElementById('badge-earned').textContent = ch.badge;
+    document.getElementById('badge-earned').style.display = '';
+  } else {
+    document.getElementById('badge-earned').style.display = 'none';
+  }
+
+  document.getElementById('complete-stars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  document.getElementById('complete-points').textContent = `+${chapterScore} points gagnés !`;
+
+  updateDots(3);
+  saveState();
+  updateHeader();
+}
+
+// ─── DOTS ────────────────────────────────────
+function updateDots(active) {
+  const dots = document.getElementById('ch-dots').children;
+  for (let i = 0; i < dots.length; i++) {
+    dots[i].className = 'dot';
+    if (i < active - 1) dots[i].classList.add('done');
+    else if (i === active - 1) dots[i].classList.add('active');
+  }
+}
+
+// ─── PARTICLES ───────────────────────────────
+function spawnParticles(el, text) {
+  const rect = el.getBoundingClientRect();
+  const particle = document.createElement('div');
+  particle.className = 'particle';
+  particle.textContent = text;
+  particle.style.cssText = `
+    left: ${rect.left + rect.width/2}px;
+    top: ${rect.top}px;
+    color: var(--gold);
+    --dx: ${(Math.random()-0.5)*60}px;
+  `;
+  document.body.appendChild(particle);
+  setTimeout(() => particle.remove(), 1200);
+}
+
+// ─── TOAST ───────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── PROGRESS SCREEN ─────────────────────────
+function renderProgress() {
+  updateHeader();
+  const completed = state.chaptersProgress.filter(p => p !== null).length;
+  document.getElementById('pg-score').textContent = state.score;
+  document.getElementById('pg-level').textContent = state.level;
+  document.getElementById('pg-chapters').textContent = `${completed}/11`;
+  document.getElementById('pg-badges').textContent = state.badges.length;
+
+  // Badges grid
+  const allBadges = CHAPTERS.map(c => c.badge);
+  const bg = document.getElementById('badges-grid');
+  bg.innerHTML = '';
+  allBadges.forEach(b => {
+    const earned = state.badges.includes(b);
+    const el = document.createElement('div');
+    el.className = `badge-item ${earned ? 'earned' : 'locked'}`;
+    el.textContent = b;
+    bg.appendChild(el);
+  });
+
+  // Chapter list
+  const list = document.getElementById('ch-progress-list');
+  list.innerHTML = '';
+  CHAPTERS.forEach((ch, i) => {
+    const prog = state.chaptersProgress[i];
+    const stars = prog ? prog.stars : 0;
+    const pct = (stars / 3) * 100;
+    const row = document.createElement('div');
+    row.className = 'progress-row';
+    row.innerHTML = `
+      <div class="pr-icon">${ch.icon}</div>
+      <div class="pr-name">${ch.title}</div>
+      <div class="pr-stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div class="pr-bar"><div class="pr-bar-fill" style="width:${pct}%"></div></div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+// ─── FINAL QUIZ ──────────────────────────────
+let quizIdx = 0;
+let quizCorrect = 0;
+
+function startFinalQuiz() {
+  quizIdx = 0; quizCorrect = 0;
+  showScreen('quiz');
+  document.getElementById('quiz-result').style.display = 'none';
+  document.getElementById('quiz-question-wrap').style.display = '';
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const q = FINAL_QUIZ[quizIdx];
+  document.getElementById('quiz-counter').textContent = `Question ${quizIdx+1} / ${FINAL_QUIZ.length}`;
+  const wrap = document.getElementById('quiz-question-wrap');
+  wrap.innerHTML = `
+    <div class="exercise-panel active">
+      <div class="ex-header">
+        <div class="ex-type-tag">QCM</div>
+        <div class="ex-question">${q.q}</div>
+      </div>
+      <div class="qcm-options" id="quiz-opts"></div>
+      <div class="feedback-box" id="quiz-fb" style="display:none;">
+        <div class="fb-title" id="quiz-fb-title"></div>
+        <div class="fb-text">${q.expl}</div>
+      </div>
+      <button class="btn-next-ex" id="quiz-next-btn" style="display:none;" onclick="nextQuizQuestion()">
+        ${quizIdx < FINAL_QUIZ.length - 1 ? 'Question suivante →' : '🏁 Voir mes résultats !'}
+      </button>
+    </div>
+  `;
+
+  const letters = ['A','B','C','D'];
+  const optsDiv = document.getElementById('quiz-opts');
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'qcm-btn';
+    btn.innerHTML = `<span class="qcm-letter">${letters[i]}</span>${opt}`;
+    btn.onclick = () => {
+      optsDiv.querySelectorAll('.qcm-btn').forEach(b => b.disabled = true);
+      const isCorrect = i === q.c;
+      btn.classList.add(isCorrect ? 'correct' : 'wrong');
+      if (!isCorrect) optsDiv.querySelectorAll('.qcm-btn')[q.c].classList.add('correct');
+      if (isCorrect) quizCorrect++;
+      const fb = document.getElementById('quiz-fb');
+      const fbTitle = document.getElementById('quiz-fb-title');
+      fb.className = 'feedback-box ' + (isCorrect ? 'correct' : 'wrong');
+      fbTitle.textContent = isCorrect ? '✅ Bravo !' : '❌ Raté…';
+      fb.style.display = 'block';
+      document.getElementById('quiz-next-btn').style.display = 'block';
+    };
+    optsDiv.appendChild(btn);
+  });
+}
+
+function nextQuizQuestion() {
+  quizIdx++;
+  if (quizIdx >= FINAL_QUIZ.length) {
+    showQuizResult();
+  } else {
+    renderQuizQuestion();
+    document.getElementById('quiz-next-btn').textContent =
+      quizIdx < FINAL_QUIZ.length - 1 ? 'Question suivante →' : '🏁 Voir mes résultats !';
+  }
+}
+
+function showQuizResult() {
+  document.getElementById('quiz-question-wrap').style.display = 'none';
+  const result = document.getElementById('quiz-result');
+  result.style.display = 'block';
+  document.getElementById('quiz-score-display').innerHTML = `${quizCorrect}<span>/${FINAL_QUIZ.length}</span>`;
+  const msgs = ['Continue à t\'entraîner ! 💪', 'Pas mal, tu progresses ! 📈', 'Très bien ! Tu maîtrises ! 🎯', 'Parfait ! Tu es un champion ! 🏆'];
+  const msg = quizCorrect <= 3 ? msgs[0] : quizCorrect <= 6 ? msgs[1] : quizCorrect <= 9 ? msgs[2] : msgs[3];
+  document.getElementById('quiz-result-msg').textContent = msg;
+
+  const bonus = quizCorrect * 50;
+  state.score += bonus;
+  state.xp += bonus;
+  while (state.xp >= state.level * 500) {
+    state.xp -= state.level * 500;
+    state.level++;
+  }
+  saveState();
+  updateHeader();
+
+  if (quizCorrect === FINAL_QUIZ.length && !state.badges.includes('🧠 Grand Maître des Maths')) {
+    state.badges.push('🧠 Grand Maître des Maths');
+    saveState();
+    showToast('🏆 Badge "Grand Maître des Maths" débloqué !');
+  }
+}
+
+// ─── INIT ────────────────────────────────────
+if (state.playerName !== 'Aventurier' && state.score > 0) {
+  // Resume
+  document.getElementById('player-name').value = state.playerName;
+}
+updateHeader();
+</script>
+</body>
+</html>
